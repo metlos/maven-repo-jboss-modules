@@ -48,9 +48,13 @@ public final class ProjectModule {
             return this;
         }
 
-        public Builder localRepo(File root) {
+        public Builder localRepository(File root) {
             this.localRepo = root;
             return this;
+        }
+
+        public Builder localRepository(String rootPath) {
+            return localRepository(new File(rootPath));
         }
 
         public Builder addRemoteRepository(String name, String url) {
