@@ -1,0 +1,26 @@
+== Maven Repo JBoss Modules
+
+Uses Maven artifact resolution for defining modules for JBoss Modules. This is simplistic and doesn't
+support a ton of JBoss Modules features but gets the job done if you want to just have modular classloading and
+artifacts downloaded from Maven repositories.
+
+=== Usage
+
+```java
+Module project = ProjectModule.build()
+        .localRepository("~/custom/local/maven/repository")
+        .addRemoteRepository("jboss", URI.create("https://repository.jboss.org/nexus/content/repositories/public/")
+        .addDependency("com.acme:artifact:14.3")
+        .addDependency("foo.bar:baz:0.10")
+        .create();
+
+        Class<?> acme = project.getClassLoader().loadClass("com.acme.artifact.Acme");
+        ...
+```
+
+If you don't specify the location of the local repository using the `localRepository()` builder method, the default
+`~/.m2/repository` will be used. Maven Central repository is always present as a remote repository and you can add
+more using the `addRemoteRepository()` builder method.
+
+You then merely define the dependencies of your "project" module and the artifacts will be resolved and available as
+modules with all the classloader isolation goodness JBoss Modules provides.
