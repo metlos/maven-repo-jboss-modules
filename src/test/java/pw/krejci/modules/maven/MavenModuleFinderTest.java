@@ -1,8 +1,11 @@
 package pw.krejci.modules.maven;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.jboss.modules.Module;
+import org.jboss.modules.ModuleDependencySpec;
 import org.jboss.modules.ModuleFinder;
 import org.jboss.modules.ModuleLoader;
 import org.jboss.modules.Version;
@@ -20,7 +23,9 @@ public class MavenModuleFinderTest {
 
         assertEquals(Version.parse("4.12"), junitModule.getVersion());
         assertEquals("junit:junit:jar:4.12", junitModule.getName());
-        assertEquals(1, junitModule.getDependencies().length);
+        assertEquals(2, junitModule.getDependencies().length);
+        assertFalse(junitModule.getDependencies()[0] instanceof ModuleDependencySpec);
+        assertTrue(junitModule.getDependencies()[1] instanceof ModuleDependencySpec);
     }
 
     @Test
