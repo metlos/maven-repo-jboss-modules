@@ -1,6 +1,7 @@
 package pw.krejci.modules.maven;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -12,9 +13,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.jar.JarFile;
 
 import org.eclipse.aether.RepositorySystem;
@@ -35,26 +39,29 @@ import org.jboss.modules.ModuleFinder;
 import org.jboss.modules.ModuleLoadException;
 import org.jboss.modules.ModuleLoader;
 import org.jboss.modules.ModuleSpec;
+import org.jboss.modules.PathUtils;
 import org.jboss.modules.Version;
-import org.jboss.modules.filter.PathFilters;
 
 public class MavenModuleFinder implements ModuleFinder {
 
     private final RepositorySystemSession mavenSession;
     private final RepositorySystem repositorySystem;
     private final List<RemoteRepository> remoteRepos;
+    private final ModuleSpecController modifier;
 
     public MavenModuleFinder() {
         this(new File(new File(System.getProperty("user.home"), ".m2"), "repository"));
     }
 
     public MavenModuleFinder(File localMavenRepo) {
-        this(localMavenRepo, mavenCentral());
+        this(localMavenRepo, mavenCentral(), ModuleSpecController.NOOP);
     }
 
-    public MavenModuleFinder(File localMavenRepo, Map<String, URI> remoteRepos) {
+    public MavenModuleFinder(File localMavenRepo, Map<String, URI> remoteRepos,
+            ModuleSpecController modifier) {
         repositorySystem = MavenBootstrap.newRepositorySystem();
         mavenSession = MavenBootstrap.newRepositorySystemSession(repositorySystem, localMavenRepo);
+        this.modifier = modifier;
         this.remoteRepos = remoteRepos.entrySet().stream()
                 .map(e -> new RemoteRepository.Builder(e.getKey(), "default", e.getValue().toString()).build())
                 .collect(toList());
@@ -76,17 +83,31 @@ public class MavenModuleFinder implements ModuleFinder {
 
             Artifact artifact = resolveArtifact(new DefaultArtifact(name));
 
+            modifier.start(name);
+
             ModuleSpec.Builder bld = ModuleSpec.build(name);
 
             bld.setVersion(Version.parse(artifact.getVersion()));
 
             bld.addResourceRoot(createResourceLoaderSpec(createJarResourceLoader(name, new JarFile(artifact.getFile()))));
+
             //needed, so that the module can load classes from the resource root
             bld.addDependency(DependencySpec.createLocalDependencySpec());
+            //add dependency on the JDK paths
+            bld.addDependency(DependencySpec.createSystemDependencySpec(PathUtils.getPathSet(null)));
 
             resolveDependencies(artifact).stream()
                     .filter(a -> !artifact.toString().equals(a.toString()) && "jar".equalsIgnoreCase(a.getExtension()))
-                    .forEach(a -> bld.addDependency(DependencySpec.createModuleDependencySpec(a.toString())));
+                    .map(a -> {
+                        String depName = a.toString();
+                        return modifier.modifyDependency(depName, ImportEverythingExportServices.spec(depName));
+                    })
+                    .filter(Objects::nonNull)
+                    .forEach(bld::addDependency);
+
+            modifier.modify(bld);
+
+            modifier.end(name);
 
             return bld.create();
         } catch (ArtifactResolutionException | IllegalStateException | IOException e) {

@@ -17,9 +17,9 @@ import org.eclipse.aether.transport.http.HttpTransporterFactory;
  *
  * This class is taken almost verbatim from maven resolver demos.
  */
-final class MavenBootstrap {
+public final class MavenBootstrap {
 
-    static RepositorySystem newRepositorySystem() {
+    public static RepositorySystem newRepositorySystem() {
         DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
         locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
         locator.addService(TransporterFactory.class, FileTransporterFactory.class);
@@ -35,7 +35,8 @@ final class MavenBootstrap {
         return locator.getService(RepositorySystem.class);
     }
 
-    static DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system, File localRepoLocation) {
+    public static DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system,
+            File localRepoLocation) {
 
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
 

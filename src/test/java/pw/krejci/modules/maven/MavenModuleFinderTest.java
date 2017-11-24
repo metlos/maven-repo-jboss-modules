@@ -23,9 +23,10 @@ public class MavenModuleFinderTest {
 
         assertEquals(Version.parse("4.12"), junitModule.getVersion());
         assertEquals("junit:junit:jar:4.12", junitModule.getName());
-        assertEquals(2, junitModule.getDependencies().length);
+        assertEquals(3, junitModule.getDependencies().length);
         assertFalse(junitModule.getDependencies()[0] instanceof ModuleDependencySpec);
-        assertTrue(junitModule.getDependencies()[1] instanceof ModuleDependencySpec);
+        assertFalse(junitModule.getDependencies()[1] instanceof ModuleDependencySpec);
+        assertTrue(junitModule.getDependencies()[2] instanceof ModuleDependencySpec);
     }
 
     @Test

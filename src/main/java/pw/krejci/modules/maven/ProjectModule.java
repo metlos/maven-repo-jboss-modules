@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.jboss.modules.DependencySpec;
@@ -34,6 +35,7 @@ public final class ProjectModule {
         private final Set<String> deps;
         private File localRepo;
         private final Map<String, URI> remoteRepositories;
+        private ModuleSpecController moduleSpecController = ModuleSpecController.NOOP;
 
         private Builder(String projectName) {
             this.projectName = projectName;
@@ -62,6 +64,11 @@ public final class ProjectModule {
             return this;
         }
 
+        public Builder moduleSpecController(ModuleSpecController controller) {
+            this.moduleSpecController = controller;
+            return this;
+        }
+
         public Module create() {
             ModuleFinder projectFinder = new ModuleFinder() {
                 @Override
@@ -70,16 +77,28 @@ public final class ProjectModule {
                         return null;
                     }
 
+                    moduleSpecController.start(projectName);
+
                     ModuleSpec.Builder bld = ModuleSpec.build(projectName);
                     for (String dep : deps) {
-                        bld.addDependency(DependencySpec.createModuleDependencySpec(dep));
+                        DependencySpec spec = ImportEverythingExportServices.spec(dep);
+
+                        spec = moduleSpecController.modifyDependency(dep, spec);
+
+                        if (spec !=  null) {
+                            bld.addDependency(spec);
+                        }
                     }
+
+                    moduleSpecController.modify(bld);
+
+                    moduleSpecController.end(projectName);
 
                     return bld.create();
                 }
             };
 
-            ModuleFinder mavenModuleFinder = new MavenModuleFinder(localRepo, remoteRepositories);
+            ModuleFinder mavenModuleFinder = new MavenModuleFinder(localRepo, remoteRepositories, moduleSpecController);
 
             ModuleLoader loader = new ModuleLoader(new ModuleFinder[]{projectFinder, mavenModuleFinder});
 
