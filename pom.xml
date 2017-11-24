@@ -5,6 +5,9 @@
     <groupId>pw.krejci</groupId>
     <artifactId>maven-repo-jboss-modules</artifactId>
     <version>0.1.0-SNAPSHOT</version>
+    <name>Maven Repository as JBoss Modules</name>
+    <description>Resolve JBoss Modules from the Maven repository. Automatically download dependencies.</description>
+    <url>https://github.com/metlos/maven-repo-jboss-modules</url>
 
     <properties>
         <version.org.jboss.modules>1.6.1.Final</version.org.jboss.modules>
@@ -54,6 +57,20 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <releaseProfiles>release,release-profile</releaseProfiles>
+                    <pushChanges>false</pushChanges>
+                    <preparationGoals>clean verify</preparationGoals>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -80,7 +97,6 @@
         <system>github-issues</system>
         <url>https://github.com/metlos/maven-repo-jboss-modules/issues</url>
     </issueManagement>
-
 
     <scm>
         <connection>scm:git:git://github.com/metlos/maven-repo-jboss-modules.git</connection>
