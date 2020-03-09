@@ -4,7 +4,7 @@
 
     <groupId>pw.krejci</groupId>
     <artifactId>maven-repo-jboss-modules</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.1.1</version>
     <name>Maven Repository as JBoss Modules</name>
     <description>Resolve JBoss Modules from the Maven repository. Automatically download dependencies.</description>
     <url>https://github.com/metlos/maven-repo-jboss-modules</url>
@@ -102,7 +102,7 @@
         <connection>scm:git:git://github.com/metlos/maven-repo-jboss-modules.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/metlos/maven-repo-jboss-modules.git</developerConnection>
         <url>https://github.com/metlos/maven-repo-jboss-modules</url>
-        <tag>HEAD</tag>
+        <tag>maven-repo-jboss-modules-0.1.1</tag>
     </scm>
 
     <distributionManagement>
