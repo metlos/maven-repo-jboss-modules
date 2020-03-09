@@ -121,9 +121,6 @@ public class MavenModuleFinder implements ModuleFinder {
         request.setArtifact(artifact);
 
         ArtifactResult result = repositorySystem.resolveArtifact(mavenSession, request);
-        if (result.getExceptions() != null && !result.getExceptions().isEmpty()) {
-            throw new ArtifactResolutionException(singletonList(result), "Artifact resolution failed.");
-        }
 
         if (!result.isResolved() || result.isMissing()) {
             throw new IllegalStateException("Failed to resolve the artifact " + artifact);
